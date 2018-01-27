@@ -79,15 +79,39 @@ class App extends Component {
     });
   }
 
-  calculateYieldValue = (field, changedCrop) => {
-    // Crop Yield Average * Hectares of Field / (Crop Risk Factor * Field Disease Susceptibility) * price per tone
+  updateYieldValue = () => {
+    const { selectedField, farm } = this.state;  
+    const yieldValue = this.calculateYieldValue(selectedField);
+    const fieldWithYieldValue = {
+      ...selectedField,
+      yieldValue
+    }
+
+    farm.fields[selectedField.id] = fieldWithYieldValue;
+
+    this.setState({
+      farm: farm,
+      selectedField: fieldWithYieldValue
+    });
+  }
+
+  calculateYieldValue = (field) => {
+    // Get the values into arrays to prepare them for avg calculation
     const yields = field.crops.map(crop => crop.expected_yield);
-    const avg = yields.reduce( (a, b) => a + b, 0) / yields.length;
+    const riskFactors = field.crops.map(crop => crop.disease_risk_factor);
+    const prices = field.crops.map(crop => crop.price_per_tonne);
+    
+    // Calculate the required averages
+    const riskFactorAvg =  riskFactors.reduce( (a, b) => a + b, 0) / riskFactors.length;
+    const cropYieldAvg = yields.reduce( (a, b) => a + b, 0) / yields.length;
+    const pricePerTonneAvg = prices.reduce( (a, b) => a + b, 0) / prices.length;
+
     const { hectares, disease_susceptibility } = field;
 
-    const yieldValue = (avg * hectares) / (changedCrop.disease_risk_factor * disease_susceptibility) * changedCrop.price_per_tonne;
+    // Crop Yield Average * Hectares of Field / (Crop Risk Factor * Field Disease Susceptibility) * price per tone
+    const yieldValue = (cropYieldAvg * hectares) / (riskFactorAvg * disease_susceptibility) * pricePerTonneAvg;
     
-    return yieldValue;
+    return yieldValue ? yieldValue : null;
   }
 
   replaceCrop = (cropIndex, fieldID) => {
@@ -107,6 +131,8 @@ class App extends Component {
       farm: farm,
       selectedField: field,
       displayModal: false 
+    }, () => {
+      this.updateYieldValue()
     });
   }
 
@@ -116,12 +142,10 @@ class App extends Component {
 
   removeCrop = (cropIndex, fieldID) => {
     let farm = this.state.farm;
-
-    const yieldValue = this.calculateYieldValue(this.state.selectedField, this.state.selectedCrop);
     farm.fields[fieldID].crops = farm.fields[fieldID].crops.filter((crop, index) => index !== cropIndex);
-    farm.fields[fieldID].yieldValue = yieldValue;
-
-    this.setState({ farm: farm });
+    this.setState({ farm: farm }, () => {
+      this.updateYieldValue();      
+    });
   }
 
   addCrop = () => {
@@ -135,19 +159,14 @@ class App extends Component {
       ]
     };
 
-    const yieldValue = this.calculateYieldValue(newField, this.state.selectedCrop);
-    
-    const fieldWithYieldValue = {
-      ...newField,
-      yieldValue
-    }
-
-    farm.fields[selectedField.id] = fieldWithYieldValue;
-
     this.setState({
       farm: farm,
-      selectedField: fieldWithYieldValue
+      selectedField: newField
+    }, () => {
+      this.updateYieldValue();
     });
+
+
   }
 
   getFarmFields = (data) => {
