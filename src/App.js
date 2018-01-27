@@ -6,6 +6,11 @@ import 'leaflet/dist/leaflet.css';
 import FarmData from './data/farm.json';
 import crops from './data/crops.json';
 
+const api = {
+  farm: "https://private-bf7f31-hummingbirdsimple.apiary-mock.com/farm",
+  crops: "https://private-bf7f31-hummingbirdsimple.apiary-mock.com/crops"
+}
+
 const fieldColors = {
   low: "#D0EF84",
   medium: "#FDA831",
@@ -18,7 +23,11 @@ class App extends Component {
 
     this.state = {
       bounds: undefined,
-      selectedCrop: null,
+      displayModal: false,
+      errors: [],
+      fetching: true,
+      fetched: false,
+      selectedCrop: crops[0],
       selectedField: {
         id: 0, 
         name: "Hover over a field for info or click to zoom",
@@ -26,11 +35,45 @@ class App extends Component {
         disease_susceptibility: 0  
       },
 
-      farm: {
-        ...FarmData,
-        fields: this.getFarmFields()
-      }
+      crops: {},
+      farm: {}
     }
+  }
+
+  componentDidMount() {
+    let crops, farm;
+
+    fetch(api.crops)
+    .then(cropsData => cropsData.json())
+    .then(cropsData => crops = cropsData)
+    .then(cropsData => fetch(api.farm))
+    .then(farmData => farmData.json())
+    .then(farmData => {
+      farm = farmData;
+      this.setState({
+        fetching: false,
+        fetched: true,
+        crops,
+        farm: {
+          ...farm,
+          centre: {
+            ...farm.centre,
+            coordinates: [farm.centre.coordinates[1], farm.centre.coordinates[0]], // Coordinates are inversed from the API
+          },
+          fields: this.getFarmFields(farm)
+        }
+      });
+
+      console.log(this.state);
+    })
+    .catch(err => {
+      console.error(err);
+
+      this.setState({ fetched: true, errors: [
+        ...this.state.errors,
+        "Could not load data. Error during data fetch request..."
+      ] })
+    });
   }
 
   calculateYieldValue = (field, changedCrop) => {
@@ -45,12 +88,18 @@ class App extends Component {
     return yieldValue;
   }
 
-  replaceCrop = () => {
-
+  replaceCrop = (cropIndex, fieldID) => {
+    this.setState({ displayModal: true });
   }
 
-  removeCrop = () => {
-    
+  removeCrop = (cropIndex, fieldID) => {
+    let farm = this.state.farm;
+
+    const yieldValue = this.calculateYieldValue(this.state.selectedField, this.state.selectedCrop);
+    farm.fields[fieldID].crops = farm.fields[fieldID].crops.filter((crop, index) => index !== cropIndex);
+    farm.fields[fieldID].yieldValue = yieldValue;
+
+    this.setState({ farm: farm });
   }
 
   addCrop = () => {
@@ -65,7 +114,6 @@ class App extends Component {
       ]
     };
 
-    console.log(this.state.selectedCrop);
 
     const yieldValue = this.calculateYieldValue(newField, this.state.selectedCrop);
     
@@ -84,8 +132,8 @@ class App extends Component {
 
   }
 
-  getFarmFields = () => {
-    return FarmData.fields.map(field => ({ ...field, crops:[] }));
+  getFarmFields = (data) => {
+    return data.fields.map(field => ({ ...field, crops:[] }));
   }
 
   getFieldColor = (diseaseSusceptibility) => {
@@ -114,7 +162,15 @@ class App extends Component {
   }
 
   render() {
-    const { selectedField, farm, bounds } = this.state;
+    const { selectedField, farm, bounds, displayModal, fetched, errors } = this.state;
+
+    if (!fetched) {
+      return <div className="container"> Loading ... </div>;
+    } 
+
+    if (errors.length) {
+      return <div className="container"> { errors.map( (error, index) => <p key={index}> ERROR: <b>{error}</b> </p> ) }  </div>
+    }
 
     return (
       <div className="container">
@@ -143,7 +199,17 @@ class App extends Component {
               {
                 selectedField.crops &&
                   <ul className="crops">
-                    { selectedField.crops.map( (crop, index) => <li key={ index }> { crop.name } </li>) }
+                    { 
+                      selectedField.crops.map( (crop, index) => 
+                        <li className="crop" key={ index }> 
+                          <span className="crop-name">{ crop.name }</span>
+                          <div className="crop-replace-delete">
+                            <button onClick={ () => this.replaceCrop(index, selectedField.id) } className="replace">Replace</button>
+                            <button onClick={ () => this.removeCrop(index, selectedField.id) } className="delete">Remove</button>
+                          </div>
+                        </li>
+                      ) 
+                    }
                   </ul>
               }
 
@@ -165,7 +231,7 @@ class App extends Component {
                   }
                 </select>
               </p>
-              <button onClick={ () => this.addCrop() }> Add Winter Wheat </button>
+              <button onClick={ () => this.addCrop() }> Add </button>
             </div>
           </Control>
           }
@@ -179,6 +245,12 @@ class App extends Component {
               <p><span style={{ backgroundColor: fieldColors.high }} /> High </p>
             </div>
           </Control>
+
+          <div className="overlay" style={{ display: displayModal ? 'block' : 'none' }}>
+            <div className="modal-container">
+
+            </div>
+          </div>
           
           
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />

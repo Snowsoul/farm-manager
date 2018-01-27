@@ -35,20 +35,81 @@ body {
 .field-info .crops {
   margin: 0;
   padding: 0;
+  max-height: 170px;
+  overflow: auto;
 }
 
 .field-info .crops li {
   list-style: none;
   display: block;
-  padding: 2px;
   text-align: center;
   width: auto;
-  background: #222;
+  background: #3c3c3c;
   border-radius: 3px;
-  margin: 2px;
+  padding: 5px 15px;
+  margin: 10px 2px;
+  color: #fff;
+  overflow: hidden;
+}
+
+.crop-name {
+  display: block;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.crop-replace-delete {
+  padding-bottom: 5px;
+}
+
+.crop-replace-delete button {
+  width: 50%;
+  border: 0;
+}
+
+.crop-replace-delete .replace {
+  background: #39a2e2;
   color: #fff;
 }
 
+.crop-replace-delete .delete {
+  background: #ff4040;
+  color: #fff;
+}
+
+.add-crop-container button {
+  background: rgba(71, 171, 71, 0.9);
+  color: #fff;
+  border: 0;
+  padding: 7px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-crop-container button:hover {
+  background: rgba(71, 171, 71, 1);
+}
+
+.overlay {
+  position: absolute;
+  display: none;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+}
+
+.modal-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+  background: #fff;
+  border-radius: 5px;
+}
 
 .add-crop-container h4 {
   margin: 0;
