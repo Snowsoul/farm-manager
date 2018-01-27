@@ -38,8 +38,6 @@ class FarmFieldManager extends Component {
                         }
                     </ul>
                 }
-
-
                 </div>
             </Control>
         );

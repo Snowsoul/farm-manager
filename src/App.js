@@ -28,7 +28,7 @@ class App extends Component {
     activeCropToReplace:{},
     selectedCrop: {},
     selectedField: {
-      id: 0, 
+      id: -1, 
       name: "Click the fields for info and crops management",
       hectares: 0,
       disease_susceptibility: 0  
@@ -141,9 +141,14 @@ class App extends Component {
   }
 
   removeCrop = (cropIndex, fieldID) => {
-    let farm = this.state.farm;
+    let farm = {...this.state.farm};
+    let selectedField = { ...this.state.selectedField };
+    
+    // Remove the crops from the actively selected field as well as from the farm object
+    selectedField.crops = selectedField.crops.filter((crop, index) => index !== cropIndex);
     farm.fields[fieldID].crops = farm.fields[fieldID].crops.filter((crop, index) => index !== cropIndex);
-    this.setState({ farm: farm }, () => {
+    
+    this.setState({ farm: farm, selectedField: selectedField }, () => {
       this.updateYieldValue();      
     });
   }
@@ -249,6 +254,7 @@ class App extends Component {
           }
           
           <DiseaseLevelsLegend fieldColors={fieldColors} />
+          
           <Modal 
             crops={ crops }
             cropToReplace={ activeCropToReplace }
@@ -257,14 +263,17 @@ class App extends Component {
             visible={ displayModal } 
           />
           
-          
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           
           {
             farm.fields.map( (field, index) => 
               <GeoJSON 
                 onClick={ (e) => this.onFieldSelect({ id: index, ...field }, e, "click") } 
-                color={ this.getFieldColor(field.disease_susceptibility) } 
+                color={ this.state.selectedField.id === index ? this.getFieldColor(field.disease_susceptibility) :
+                        this.state.selectedField.id === -1 ? this.getFieldColor(field.disease_susceptibility) :
+                                                            "#bbb"
+                        
+                } 
                 key={field.name} 
                 data={field.boundary} 
               />

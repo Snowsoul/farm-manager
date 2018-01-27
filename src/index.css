@@ -142,3 +142,9 @@ body {
   height: 20px;
   background: #222;
 }
+
+.overall-button {
+  background: #ff4040;
+  border: 0;
+  color: #fff;
+}
