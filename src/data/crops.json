@@ -1,0 +1,62 @@
+[
+    {
+        "name": "Winter Wheat - Reflectance",
+        "expected_yield": 8.9,
+        "disease_risk_factor": 6,
+        "price_per_tonne": 19.38
+    },
+    {
+        "name": "Winter Wheat - Sundance",
+        "expected_yield": 12.9,
+        "disease_risk_factor": 8,
+        "price_per_tonne": 15.92
+    },
+    {
+        "name": "Winter Wheat - Skyfall",
+        "expected_yield": 9.0,
+        "disease_risk_factor": 7,
+        "price_per_tonne": 18.73
+    },
+    {
+        "name": "Winter Wheat - Dickens",
+        "expected_yield": 7.2,
+        "disease_risk_factor": 4,
+        "price_per_tonne": 24.55
+    },
+    {
+        "name": "Sprint Wheat - Granary",
+        "expected_yield": 6.8,
+        "disease_risk_factor": 2,
+        "price_per_tonne": 15.76
+    },
+    {
+        "name": "Sprint Wheat - Belepi",
+        "expected_yield": 5.6,
+        "disease_risk_factor": 1,
+        "price_per_tonne": 18.22
+    },
+    {
+        "name": "Winter Barley - California",
+        "expected_yield": 8.6,
+        "disease_risk_factor": 7,
+        "price_per_tonne": 18.10
+    },
+    {
+        "name": "Winter Barley - Belfry",
+        "expected_yield": 9.3,
+        "disease_risk_factor": 6,
+        "price_per_tonne": 17.42
+    },
+    {
+        "name": "Winter Barley - Craft",
+        "expected_yield": 10.0,
+        "disease_risk_factor": 8,
+        "price_per_tonne": 15.94
+    },
+    {
+        "name": "Winter OSR - Harper",
+        "expected_yield": 4.3,
+        "disease_risk_factor": 1,
+        "price_per_tonne": 31.02
+    }
+]
