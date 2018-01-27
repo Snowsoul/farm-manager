@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { Map, TileLayer, GeoJSON } from 'react-leaflet';
+import Control from 'react-leaflet-control';
 import DiseaseLevelsLegend from './components/DiseaseLevelsLegend';
 import Modal from './components/Modal';
 import FarmFieldManager from './components/FarmFieldManager';
 import AddCrop from './components/AddCrop';
-
 import 'leaflet/dist/leaflet.css';
 
 const api = {
@@ -25,6 +25,7 @@ class App extends Component {
     errors: [],
     fetching: true,
     fetched: false,
+    activeCropToReplace:{},
     selectedCrop: {},
     selectedField: {
       id: 0, 
@@ -90,7 +91,27 @@ class App extends Component {
   }
 
   replaceCrop = (cropIndex, fieldID) => {
-    this.setState({ displayModal: true });
+    const cropToReplace = this.state.farm.fields[fieldID].crops[cropIndex];
+    this.setState({ displayModal: true, activeCropToReplace: { id: cropIndex, fieldID: fieldID, ...cropToReplace } });
+  }
+
+  onCropReplace = (crop) => {
+    let farm = this.state.farm;
+    const { activeCropToReplace, selectedField } = this.state;
+    let field = selectedField;
+    
+    farm.fields[activeCropToReplace.fieldID].crops[activeCropToReplace.id] = crop;
+    field.crops[activeCropToReplace.id] = crop;
+
+    this.setState({
+      farm: farm,
+      selectedField: field,
+      displayModal: false 
+    });
+  }
+
+  cropReplaceCancel = () => {
+    this.setState({ displayModal: false });
   }
 
   removeCrop = (cropIndex, fieldID) => {
@@ -104,8 +125,7 @@ class App extends Component {
   }
 
   addCrop = () => {
-    const { selectedField, farm } = this.state;
-    
+    const { selectedField, farm } = this.state;  
     
     const newField = {
       ...selectedField,
@@ -114,7 +134,6 @@ class App extends Component {
         this.state.selectedCrop
       ]
     };
-
 
     const yieldValue = this.calculateYieldValue(newField, this.state.selectedCrop);
     
@@ -125,12 +144,10 @@ class App extends Component {
 
     farm.fields[selectedField.id] = fieldWithYieldValue;
 
-
     this.setState({
       farm: farm,
       selectedField: fieldWithYieldValue
     });
-
   }
 
   getFarmFields = (data) => {
@@ -151,10 +168,7 @@ class App extends Component {
         bounds = e.target.getBounds();
       break;
       
-      case "hover":
-      
-      break;
-
+      case "hover": break;
       default: break;
     }
 
@@ -168,6 +182,7 @@ class App extends Component {
       crops, 
       bounds, 
       displayModal,
+      activeCropToReplace,
       fetching,
       fetched, 
       errors 
@@ -205,15 +220,23 @@ class App extends Component {
 
           {
             this.state.selectedField.hectares &&
+            <Control position="bottomright">
               <AddCrop 
                 crops={ crops }
                 onSelectedCropChange={ (e) => this.setState({ selectedCrop: crops[e.target.value] }) }
                 onAddCrop={ this.addCrop }
               />
+            </Control>
           }
           
           <DiseaseLevelsLegend fieldColors={fieldColors} />
-          <Modal visible={ displayModal } />
+          <Modal 
+            crops={ crops }
+            cropToReplace={ activeCropToReplace }
+            onReplace={ this.onCropReplace }
+            onCancel={ this.cropReplaceCancel }
+            visible={ displayModal } 
+          />
           
           
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />

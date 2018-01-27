@@ -1,14 +1,23 @@
 import React, { Component } from 'react';
-import Control from 'react-leaflet-control';
 
 class AddCrop extends Component {
     render() {
-        const { crops, onSelectedCropChange, onAddCrop } = this.props;
+        const { 
+          crops, 
+          cropToReplace, 
+          onSelectedCropChange, 
+          onAddCrop,
+          onCancel,
+          replace = false 
+        } = this.props;
 
         return (
-            <Control position="bottomright">
               <div className="add-crop-container">
-                <h4> Add a crop </h4>
+                <h4>{ replace ? 'Replace a crop' : 'Add a crop' }</h4>
+                {
+                  replace && cropToReplace &&
+                  <p> <b>{cropToReplace.name}</b> <br /> <br/> with <br /> </p>
+                }
                 <p>
                   <select onChange={ onSelectedCropChange }>
                     { 
@@ -18,9 +27,12 @@ class AddCrop extends Component {
                     }
                   </select>
                 </p>
-                <button onClick={ onAddCrop }> Add </button>
+                {
+                  replace &&
+                  <button className="cancel-button" onClick={onCancel}> Cancel </button>
+                }
+                <button onClick={ onAddCrop }> { replace ? 'Replace' : 'Add' } </button>
               </div>
-            </Control>
         );
     }
 }
